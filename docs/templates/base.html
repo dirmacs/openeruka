@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{{ config.title }}{% endblock title %}</title>
+  <meta name="description" content="{% block description %}{{ config.description }}{% endblock description %}">
+  <link rel="icon" type="image/svg+xml" href="{{ get_url(path='openeruka-logo.svg') }}">
+  <link rel="stylesheet" href="{{ get_url(path='style.css') }}">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="{{ config.base_url }}/">
+      <img src="{{ get_url(path='openeruka-logo.svg') }}" alt="" class="brand-logo">
+      openeruka
+    </a>
+    <ul>
+      <li><a href="{{ config.base_url }}/getting-started/">Get started</a></li>
+      <li><a href="{{ config.base_url }}/server/">Server API</a></li>
+      <li><a href="{{ config.base_url }}/types/">Types</a></li>
+      <li><a href="{{ config.base_url }}/client/">Client</a></li>
+      <li><a href="{{ config.base_url }}/ecosystem/">Ecosystem</a></li>
+      <li><a href="{{ config.extra.repo_url }}" target="_blank" rel="noopener">GitHub ↗</a></li>
+      <li><a href="{{ config.extra.crates_url }}" target="_blank" rel="noopener">crates.io ↗</a></li>
+    </ul>
+  </nav>
+  <main>
+    {% block content %}{% endblock content %}
+  </main>
+  <footer>
+    <p>
+      openeruka — MIT —
+      <a href="{{ config.extra.repo_url }}">github.com/dirmacs/openeruka</a>
+    </p>
+    <p>
+      Part of the <a href="https://dirmacs.com">DIRMACS</a> ecosystem ·
+      <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> ·
+      <a href="https://github.com/dirmacs/eruka-mcp">eruka-mcp</a> ·
+      <a href="{{ config.extra.docs_rs_url }}">docs.rs</a>
+    </p>
+  </footer>
+</body>
+</html>

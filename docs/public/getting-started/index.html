@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Getting Started | openeruka</title>
+  <meta name="description" content="Install openeruka and connect it to your AI agent in 5 minutes">
+  <link rel="icon" type="image/svg+xml" href="https://dirmacs.github.io/openeruka/openeruka-logo.svg">
+  <link rel="stylesheet" href="https://dirmacs.github.io/openeruka/style.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/">
+      <img src="https://dirmacs.github.io/openeruka/openeruka-logo.svg" alt="" class="brand-logo">
+      openeruka
+    </a>
+    <ul>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/getting-started/">Get started</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/server/">Server API</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/types/">Types</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/client/">Client</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/ecosystem/">Ecosystem</a></li>
+      <li><a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka" target="_blank" rel="noopener">GitHub ↗</a></li>
+      <li><a href="https:&#x2F;&#x2F;crates.io&#x2F;crates&#x2F;openeruka" target="_blank" rel="noopener">crates.io ↗</a></li>
+    </ul>
+  </nav>
+  <main>
+    
+<article class="doc-page">
+  <h1>Getting Started</h1>
+  <h2 id="requirements">Requirements</h2>
+<ul>
+<li>Rust 1.75+ and Cargo</li>
+<li>No other dependencies (SQLite is bundled)</li>
+</ul>
+<h2 id="install-the-server">Install the server</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">cargo</span><span> install openeruka-server
+</span></code></pre>
+<p>This installs the <code>openeruka</code> binary.</p>
+<h2 id="start-the-server">Start the server</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">openeruka</span><span> serve
+</span></code></pre>
+<p>Default: listens on <code>http://0.0.0.0:8080</code>, stores data in <code>./eruka.db</code> (SQLite).</p>
+<p>Options:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">openeruka</span><span> serve</span><span style="color:#bf616a;"> --port</span><span> 9090          </span><span style="color:#65737e;"># custom port
+</span><span style="color:#bf616a;">openeruka --db</span><span> /data/ctx.db serve    </span><span style="color:#65737e;"># custom DB path
+</span></code></pre>
+<h2 id="connect-eruka-mcp">Connect eruka-mcp</h2>
+<p>Install <a href="https://github.com/dirmacs/eruka-mcp">eruka-mcp</a> — the MCP server that bridges openeruka to Claude Desktop, Claude Code, and any MCP client:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">cargo</span><span> install eruka-mcp
+</span></code></pre>
+<p><strong>Claude Code</strong> (one command):</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">claude</span><span> mcp add eruka eruka-mcp
+</span></code></pre>
+<p><strong>Claude Desktop</strong> — add to <code>claude_desktop_config.json</code>:</p>
+<pre data-lang="json" style="background-color:#2b303b;color:#c0c5ce;" class="language-json "><code class="language-json" data-lang="json"><span>{
+</span><span>  &quot;</span><span style="color:#a3be8c;">mcpServers</span><span>&quot;: {
+</span><span>    &quot;</span><span style="color:#a3be8c;">eruka</span><span>&quot;: {
+</span><span>      &quot;</span><span style="color:#a3be8c;">command</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">eruka-mcp</span><span>&quot;
+</span><span>    }
+</span><span>  }
+</span><span>}
+</span></code></pre>
+<p><code>eruka-mcp</code> defaults to <code>http://localhost:8080</code> — no extra config needed when running openeruka locally.</p>
+<h2 id="test-via-cli">Test via CLI</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Read all context for the default workspace
+</span><span style="color:#bf616a;">eruka-mcp</span><span> get &quot;</span><span style="color:#a3be8c;">*</span><span>&quot;
+</span><span>
+</span><span style="color:#65737e;"># Write a field
+</span><span style="color:#bf616a;">eruka-mcp</span><span> write &quot;</span><span style="color:#a3be8c;">identity/company</span><span>&quot; &quot;</span><span style="color:#a3be8c;">ACME Corp</span><span>&quot;
+</span><span>
+</span><span style="color:#65737e;"># Check health
+</span><span style="color:#bf616a;">eruka-mcp</span><span> health
+</span></code></pre>
+<h2 id="use-the-rest-api-directly">Use the REST API directly</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Write a field
+</span><span style="color:#bf616a;">curl -s</span><span> http://localhost:8080/fields</span><span style="color:#bf616a;"> -X</span><span> POST \
+</span><span style="color:#bf616a;">  -H </span><span>&quot;</span><span style="color:#a3be8c;">Content-Type: application/json</span><span>&quot; \
+</span><span style="color:#bf616a;">  -d </span><span>&#39;</span><span style="color:#a3be8c;">{&quot;workspace_id&quot;:&quot;default&quot;,&quot;path&quot;:&quot;identity/name&quot;,&quot;value&quot;:&quot;ACME&quot;,&quot;knowledge_state&quot;:&quot;confirmed&quot;,&quot;confidence&quot;:1.0,&quot;source&quot;:&quot;user_input&quot;}</span><span>&#39;
+</span><span>
+</span><span style="color:#65737e;"># Read it back
+</span><span style="color:#bf616a;">curl -s </span><span>&quot;</span><span style="color:#a3be8c;">http://localhost:8080/fields/default/identity/name</span><span>&quot;
+</span></code></pre>
+<h2 id="switching-backends">Switching backends</h2>
+<p>openeruka ships two storage backends:</p>
+<table><thead><tr><th>Backend</th><th>Command</th><th>Notes</th></tr></thead><tbody>
+<tr><td>SQLite (default)</td><td><code>openeruka serve</code></td><td>Zero setup, file-based</td></tr>
+<tr><td>redb</td><td><code>openeruka --backend redb serve</code></td><td>Embedded KV, requires <code>--features redb</code> build</td></tr>
+</tbody></table>
+<p>To use redb, build from source with the feature enabled:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">git</span><span> clone https://github.com/dirmacs/openeruka
+</span><span style="color:#96b5b4;">cd</span><span> openeruka
+</span><span style="color:#bf616a;">cargo</span><span> build</span><span style="color:#bf616a;"> --release --features</span><span> redb
+</span><span style="color:#bf616a;">./target/release/openeruka --backend</span><span> redb serve
+</span></code></pre>
+<h2 id="next-steps">Next steps</h2>
+<ul>
+<li><a href="/server/">Server API reference</a> — all REST endpoints</li>
+<li><a href="/types/">Types reference</a> — KnowledgeState, ErukaField, FieldPath</li>
+<li><a href="/client/">HTTP client library</a> — use openeruka-client in your Rust app</li>
+<li><a href="/ecosystem/">Ecosystem</a> — related projects and managed tier</li>
+</ul>
+
+</article>
+
+  </main>
+  <footer>
+    <p>
+      openeruka — MIT —
+      <a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka">github.com/dirmacs/openeruka</a>
+    </p>
+    <p>
+      Part of the <a href="https://dirmacs.com">DIRMACS</a> ecosystem ·
+      <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> ·
+      <a href="https://github.com/dirmacs/eruka-mcp">eruka-mcp</a> ·
+      <a href="https:&#x2F;&#x2F;docs.rs&#x2F;openeruka">docs.rs</a>
+    </p>
+  </footer>
+</body>
+</html>

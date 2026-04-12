@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+  <img src="{{ get_url(path='openeruka-logo.svg') }}" alt="openeruka logo" class="hero-logo">
+  <h1 class="hero-title">openeruka</h1>
+  <p class="hero-tagline">
+    Open-source knowledge state memory server for AI agents.<br>
+    Self-host your memory. No account needed.
+  </p>
+  <div class="badges">
+    <a href="https://crates.io/crates/openeruka"><img src="https://img.shields.io/crates/v/openeruka?style=flat-square&color=6c8ebf" alt="crates.io"></a>
+    <a href="https://crates.io/crates/openeruka"><img src="https://img.shields.io/crates/d/openeruka?style=flat-square&color=4a6fa5" alt="downloads"></a>
+    <a href="{{ config.extra.repo_url }}/actions"><img src="{{ config.extra.repo_url }}/actions/workflows/ci.yml/badge.svg?style=flat-square" alt="CI"></a>
+    <img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="MIT">
+  </div>
+  <div class="install-box">cargo install openeruka-server</div>
+  <div class="hero-cta">
+    <a class="btn-primary" href="{{ config.base_url }}/getting-started/">Get started →</a>
+    <a class="btn-secondary" href="{{ config.extra.repo_url }}">GitHub</a>
+    <a class="btn-secondary" href="{{ config.extra.crates_url }}">crates.io</a>
+  </div>
+</div>
+
+<section class="ks-section">
+  <h2>The Knowledge State Invariant</h2>
+  <p class="section-intro">Every field in openeruka carries a state. <strong>Confirmed facts cannot be overwritten by inferred guesses</strong> — this is enforced at write time, not by convention.</p>
+  <table class="ks-table">
+    <thead>
+      <tr><th>State</th><th>Confidence</th><th>Meaning</th><th>Agent behaviour</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="ks-badge ks-confirmed">CONFIRMED</span></td>
+        <td>1.0</td>
+        <td>User-verified ground truth</td>
+        <td>Use directly</td>
+      </tr>
+      <tr>
+        <td><span class="ks-badge ks-inferred">INFERRED</span></td>
+        <td>0.45–0.85</td>
+        <td>AI-extracted, high confidence</td>
+        <td>Use with caveat</td>
+      </tr>
+      <tr>
+        <td><span class="ks-badge ks-uncertain">UNCERTAIN</span></td>
+        <td>0.05–0.30</td>
+        <td>Was confirmed, now stale</td>
+        <td>Flag as possibly outdated</td>
+      </tr>
+      <tr>
+        <td><span class="ks-badge ks-unknown">UNKNOWN</span></td>
+        <td>0.0</td>
+        <td>Needed but missing</td>
+        <td><strong>DO NOT fabricate</strong></td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="features-section">
+  <h2>Features</h2>
+  <div class="features-grid">
+    <div class="feature-card">
+      <h3>Multi-backend storage</h3>
+      <p>SQLite by default — zero setup. Enable <code>--features redb</code> for the embedded key-value backend. Swap without changing a line of application code.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Full REST API</h3>
+      <p>Compatible with the <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> managed service surface. Write once, run locally or in the cloud.</p>
+    </div>
+    <div class="feature-card">
+      <h3>MCP-native</h3>
+      <p>Connect Claude Desktop, Claude Code, Cursor, or any MCP client via <a href="https://github.com/dirmacs/eruka-mcp">eruka-mcp</a>. Default URL is <code>http://localhost:8080</code> — no extra config.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Typed Rust client</h3>
+      <p><code>openeruka-client</code> gives you a fully async, typed HTTP client for embedding Eruka reads/writes directly in your Rust application.</p>
+    </div>
+    <div class="feature-card">
+      <h3>CLI included</h3>
+      <p>Inspect and modify context from the shell. <code>openeruka get / set</code> for scripting, CI pipelines, and quick debugging.</p>
+    </div>
+    <div class="feature-card">
+      <h3>Knowledge graph</h3>
+      <p>Entity nodes and typed edges let you model relationships between things your agent knows — not just isolated key-value pairs.</p>
+    </div>
+  </div>
+</section>
+
+<section class="quickstart-section">
+  <h2>Quick start</h2>
+  <pre><code class="language-bash"># 1. Install
+cargo install openeruka-server   # installs the `openeruka` binary
+
+# 2. Start the server (SQLite, port 8080)
+openeruka serve
+
+# 3. Connect eruka-mcp (defaults to http://localhost:8080)
+cargo install eruka-mcp
+claude mcp add eruka eruka-mcp</code></pre>
+  <p>Or use the REST API directly:</p>
+  <pre><code class="language-bash"># Write a confirmed fact
+curl -s http://localhost:8080/fields -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"workspace_id":"default","path":"identity/company","value":"ACME","knowledge_state":"confirmed","confidence":1.0,"source":"user_input"}'
+
+# Read it back
+curl -s http://localhost:8080/fields/default/identity/company</code></pre>
+</section>
+
+<section class="arch-section">
+  <h2>Architecture</h2>
+  <svg viewBox="0 0 480 200" xmlns="http://www.w3.org/2000/svg" class="arch-svg">
+    <defs>
+      <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+        <polygon points="0 0, 8 3, 0 6" fill="#6c8ebf"/>
+      </marker>
+    </defs>
+    <!-- AI Client -->
+    <rect x="20" y="70" width="120" height="60" rx="8" fill="#1a1d27" stroke="#2a2d3a" stroke-width="1.5"/>
+    <text x="80" y="96" fill="#e0e0e0" font-family="-apple-system,sans-serif" font-size="12" text-anchor="middle">AI Client</text>
+    <text x="80" y="114" fill="#888" font-family="monospace" font-size="10" text-anchor="middle">Claude / Cursor / …</text>
+    <!-- eruka-mcp -->
+    <rect x="180" y="70" width="120" height="60" rx="8" fill="#1a1d27" stroke="#6c8ebf" stroke-width="2"/>
+    <text x="240" y="96" fill="#8fb3e8" font-family="-apple-system,sans-serif" font-size="12" text-anchor="middle" font-weight="bold">eruka-mcp</text>
+    <text x="240" y="114" fill="#888" font-family="monospace" font-size="10" text-anchor="middle">MCP server</text>
+    <!-- openeruka -->
+    <rect x="340" y="60" width="120" height="80" rx="8" fill="#1a1d27" stroke="#6c8ebf" stroke-width="2.5"/>
+    <text x="400" y="93" fill="#8fb3e8" font-family="-apple-system,sans-serif" font-size="13" text-anchor="middle" font-weight="bold">openeruka</text>
+    <text x="400" y="110" fill="#888" font-family="monospace" font-size="10" text-anchor="middle">REST :8080</text>
+    <text x="400" y="126" fill="#888" font-family="monospace" font-size="10" text-anchor="middle">SQLite / redb</text>
+    <!-- Arrows -->
+    <line x1="140" y1="100" x2="178" y2="100" stroke="#6c8ebf" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="159" y="92" fill="#888" font-family="monospace" font-size="9" text-anchor="middle">JSON-RPC</text>
+    <line x1="300" y1="100" x2="338" y2="100" stroke="#6c8ebf" stroke-width="1.5" marker-end="url(#arr)"/>
+    <text x="319" y="92" fill="#888" font-family="monospace" font-size="9" text-anchor="middle">HTTP</text>
+  </svg>
+  <p class="arch-note">eruka-mcp also works with the managed <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> backend — same openeruka-compatible REST surface.</p>
+</section>
+
+<section class="ecosystem-section">
+  <h2>DIRMACS ecosystem</h2>
+  <div class="ecosystem-grid">
+    <a class="eco-card" href="https://github.com/dirmacs/eruka-mcp">
+      <span class="eco-name">eruka-mcp</span>
+      <span class="eco-desc">MCP server — bridges openeruka to any AI tool</span>
+    </a>
+    <a class="eco-card" href="https://eruka.dirmacs.com">
+      <span class="eco-name">eruka.dirmacs.com</span>
+      <span class="eco-desc">Managed tier — quality scoring, decay, multi-tenant</span>
+    </a>
+    <a class="eco-card" href="https://github.com/dirmacs/deagle">
+      <span class="eco-name">deagle</span>
+      <span class="eco-desc">Code intelligence — AST-based search for any codebase</span>
+    </a>
+    <a class="eco-card" href="https://github.com/dirmacs/ares">
+      <span class="eco-name">ares</span>
+      <span class="eco-desc">Multi-agent runtime — LLM routing, RAG, tool calling</span>
+    </a>
+    <a class="eco-card" href="https://dirmacs.com">
+      <span class="eco-name">dirmacs.com</span>
+      <span class="eco-desc">The company — AI infrastructure for enterprises</span>
+    </a>
+    <a class="eco-card" href="https://crates.io/crates/openeruka">
+      <span class="eco-name">crates.io/openeruka</span>
+      <span class="eco-desc">Types library — use in your own Rust application</span>
+    </a>
+  </div>
+</section>
+{% endblock content %}

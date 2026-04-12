@@ -1,0 +1,15 @@
+base_url = "https://dirmacs.github.io/openeruka"
+title = "openeruka"
+description = "Open-source knowledge state memory server for AI agents"
+compile_sass = true
+generate_feeds = false
+build_search_index = true
+
+[markdown]
+highlight_code = true
+highlight_theme = "base16-ocean-dark"
+
+[extra]
+repo_url = "https://github.com/dirmacs/openeruka"
+crates_url = "https://crates.io/crates/openeruka"
+docs_rs_url = "https://docs.rs/openeruka"

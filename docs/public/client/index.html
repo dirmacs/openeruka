@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Rust Client Library | openeruka</title>
+  <meta name="description" content="openeruka-client — typed async HTTP client for the Eruka API">
+  <link rel="icon" type="image/svg+xml" href="https://dirmacs.github.io/openeruka/openeruka-logo.svg">
+  <link rel="stylesheet" href="https://dirmacs.github.io/openeruka/style.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/">
+      <img src="https://dirmacs.github.io/openeruka/openeruka-logo.svg" alt="" class="brand-logo">
+      openeruka
+    </a>
+    <ul>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/getting-started/">Get started</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/server/">Server API</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/types/">Types</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/client/">Client</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/ecosystem/">Ecosystem</a></li>
+      <li><a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka" target="_blank" rel="noopener">GitHub ↗</a></li>
+      <li><a href="https:&#x2F;&#x2F;crates.io&#x2F;crates&#x2F;openeruka" target="_blank" rel="noopener">crates.io ↗</a></li>
+    </ul>
+  </nav>
+  <main>
+    
+<article class="doc-page">
+  <h1>Rust Client Library</h1>
+  <p><code>openeruka-client</code> is a fully async, typed Rust client for any Eruka-compatible REST API — local openeruka or managed eruka.dirmacs.com.</p>
+<h2 id="add-to-your-project">Add to your project</h2>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[dependencies]
+</span><span style="color:#bf616a;">openeruka-client </span><span>= &quot;</span><span style="color:#a3be8c;">0.1</span><span>&quot;
+</span><span style="color:#bf616a;">tokio </span><span>= { </span><span style="color:#bf616a;">version </span><span>= &quot;</span><span style="color:#a3be8c;">1</span><span>&quot;, </span><span style="color:#bf616a;">features </span><span>= [&quot;</span><span style="color:#a3be8c;">full</span><span>&quot;] }
+</span></code></pre>
+<h2 id="connect-to-local-openeruka">Connect to local openeruka</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>openeruka_client::ErukaClient;
+</span><span>
+</span><span style="color:#b48ead;">let</span><span> client = ErukaClient::new(&quot;</span><span style="color:#a3be8c;">http://localhost:8080</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">local</span><span>&quot;);
+</span></code></pre>
+<h2 id="connect-to-managed-eruka-dirmacs-com">Connect to managed eruka.dirmacs.com</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">let</span><span> client = ErukaClient::new(&quot;</span><span style="color:#a3be8c;">https://eruka.dirmacs.com</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">eruka_sk_...</span><span>&quot;);
+</span></code></pre>
+<h2 id="writing-context">Writing context</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>openeruka_client::ErukaClient;
+</span><span style="color:#b48ead;">use </span><span>openeruka::KnowledgeState;
+</span><span>
+</span><span style="color:#b48ead;">let</span><span> client = ErukaClient::new(&quot;</span><span style="color:#a3be8c;">http://localhost:8080</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">local</span><span>&quot;);
+</span><span>
+</span><span style="color:#65737e;">// Write a confirmed fact (JSON string value)
+</span><span style="color:#b48ead;">let</span><span> field = client.</span><span style="color:#96b5b4;">write_context</span><span>(
+</span><span>    &quot;</span><span style="color:#a3be8c;">identity/company_name</span><span>&quot;,   </span><span style="color:#65737e;">// path
+</span><span>    &quot;</span><span style="color:#a3be8c;">ACME Corp</span><span>&quot;,               </span><span style="color:#65737e;">// value (auto-encoded as JSON string)
+</span><span>    &quot;</span><span style="color:#a3be8c;">user_input</span><span>&quot;,              </span><span style="color:#65737e;">// source
+</span><span>    </span><span style="color:#d08770;">1.0</span><span>,                       </span><span style="color:#65737e;">// confidence
+</span><span>).await?;
+</span><span>
+</span><span>println!(&quot;</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;"> [</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;">]</span><span>&quot;, field[&quot;</span><span style="color:#a3be8c;">field</span><span>&quot;][&quot;</span><span style="color:#a3be8c;">path</span><span>&quot;], field[&quot;</span><span style="color:#a3be8c;">field</span><span>&quot;][&quot;</span><span style="color:#a3be8c;">knowledge_state</span><span>&quot;]);
+</span></code></pre>
+<h2 id="reading-context">Reading context</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#65737e;">// Read a specific field
+</span><span style="color:#b48ead;">let</span><span> result = client.</span><span style="color:#96b5b4;">get_context</span><span>(&quot;</span><span style="color:#a3be8c;">identity/company_name</span><span>&quot;, </span><span style="color:#d08770;">false</span><span>).await?;
+</span><span style="color:#b48ead;">let</span><span> fields = result[&quot;</span><span style="color:#a3be8c;">fields</span><span>&quot;].</span><span style="color:#96b5b4;">as_array</span><span>().</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span style="color:#65737e;">// Read all fields under a prefix
+</span><span style="color:#b48ead;">let</span><span> result = client.</span><span style="color:#96b5b4;">get_context</span><span>(&quot;</span><span style="color:#a3be8c;">identity</span><span>&quot;, </span><span style="color:#d08770;">true</span><span>).await?;
+</span><span>
+</span><span style="color:#65737e;">// Read everything
+</span><span style="color:#b48ead;">let</span><span> result = client.</span><span style="color:#96b5b4;">get_context</span><span>(&quot;</span><span style="color:#a3be8c;">*</span><span>&quot;, </span><span style="color:#d08770;">true</span><span>).await?;
+</span></code></pre>
+<h2 id="searching-context">Searching context</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#65737e;">// Keyword search across all fields
+</span><span style="color:#b48ead;">let</span><span> result = client.</span><span style="color:#96b5b4;">search_context</span><span>(&quot;</span><span style="color:#a3be8c;">company name</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">*</span><span>&quot;, </span><span style="color:#d08770;">10</span><span>).await?;
+</span><span style="color:#b48ead;">let</span><span> hits = result[&quot;</span><span style="color:#a3be8c;">results</span><span>&quot;].</span><span style="color:#96b5b4;">as_array</span><span>().</span><span style="color:#96b5b4;">unwrap</span><span>();
+</span><span>
+</span><span style="color:#b48ead;">for</span><span> hit in hits {
+</span><span>    println!(&quot;</span><span style="color:#d08770;">{}</span><span style="color:#a3be8c;"> = </span><span style="color:#d08770;">{}</span><span>&quot;, hit[&quot;</span><span style="color:#a3be8c;">field_path</span><span>&quot;], hit[&quot;</span><span style="color:#a3be8c;">value</span><span>&quot;]);
+</span><span>}
+</span></code></pre>
+<h2 id="completeness-scoring">Completeness scoring</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">let</span><span> report = client.</span><span style="color:#96b5b4;">get_completeness</span><span>(&quot;</span><span style="color:#a3be8c;">*</span><span>&quot;).await?;
+</span><span style="color:#b48ead;">let</span><span> score = report[&quot;</span><span style="color:#a3be8c;">score</span><span>&quot;].</span><span style="color:#96b5b4;">as_f64</span><span>().</span><span style="color:#96b5b4;">unwrap_or</span><span>(</span><span style="color:#d08770;">0.0</span><span>);
+</span><span>println!(&quot;</span><span style="color:#a3be8c;">Context completeness: </span><span style="color:#d08770;">{:.0}</span><span style="color:#a3be8c;">%</span><span>&quot;, score * </span><span style="color:#d08770;">100.0</span><span>);
+</span></code></pre>
+<h2 id="gap-detection">Gap detection</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">let</span><span> gaps = client.</span><span style="color:#96b5b4;">get_gaps</span><span>(
+</span><span>    None,           </span><span style="color:#65737e;">// filter by category (None = all)
+</span><span>    None,           </span><span style="color:#65737e;">// filter by status (None = all)
+</span><span>    &quot;</span><span style="color:#a3be8c;">impact_score</span><span>&quot;, </span><span style="color:#65737e;">// sort by
+</span><span>    </span><span style="color:#d08770;">20</span><span>,             </span><span style="color:#65737e;">// limit
+</span><span>).await?;
+</span><span>
+</span><span style="color:#b48ead;">for</span><span> gap in gaps[&quot;</span><span style="color:#a3be8c;">gaps</span><span>&quot;].</span><span style="color:#96b5b4;">as_array</span><span>().</span><span style="color:#96b5b4;">unwrap</span><span>() {
+</span><span>    println!(&quot;</span><span style="color:#a3be8c;">Missing: </span><span style="color:#d08770;">{}</span><span>&quot;, gap[&quot;</span><span style="color:#a3be8c;">field_path</span><span>&quot;]);
+</span><span>}
+</span></code></pre>
+<h2 id="health-check">Health check</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">match</span><span> client.</span><span style="color:#96b5b4;">health</span><span>().await {
+</span><span>    Ok(</span><span style="color:#d08770;">true</span><span>)  =&gt; println!(&quot;</span><span style="color:#a3be8c;">Connected</span><span>&quot;),
+</span><span>    Ok(</span><span style="color:#d08770;">false</span><span>) =&gt; eprintln!(&quot;</span><span style="color:#a3be8c;">API unhealthy</span><span>&quot;),
+</span><span>    Err(e)    =&gt; eprintln!(&quot;</span><span style="color:#a3be8c;">Connection failed: </span><span style="color:#d08770;">{}</span><span>&quot;, e),
+</span><span>}
+</span></code></pre>
+<h2 id="full-api-reference">Full API reference</h2>
+<p>See <a href="https://docs.rs/openeruka-client">docs.rs/openeruka-client</a> for the complete API.</p>
+<h2 id="error-handling">Error handling</h2>
+<p>All methods return <code>Result&lt;serde_json::Value, ClientError&gt;</code>. Errors include:</p>
+<ul>
+<li><code>ClientError::Http(reqwest::Error)</code> — network or HTTP error</li>
+<li><code>ClientError::Api { status, message }</code> — API-level error (e.g. <code>409 KnowledgeStateConflict</code>)</li>
+</ul>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">use </span><span>openeruka_client::ClientError;
+</span><span>
+</span><span style="color:#b48ead;">match</span><span> client.</span><span style="color:#96b5b4;">write_context</span><span>(&quot;</span><span style="color:#a3be8c;">identity/name</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">New Name</span><span>&quot;, &quot;</span><span style="color:#a3be8c;">user_input</span><span>&quot;, </span><span style="color:#d08770;">0.5</span><span>).await {
+</span><span>    Ok(field) =&gt; println!(&quot;</span><span style="color:#a3be8c;">Wrote: </span><span style="color:#d08770;">{:?}</span><span>&quot;, field),
+</span><span>    Err(ClientError::Api { status: </span><span style="color:#d08770;">409</span><span>, message }) =&gt; {
+</span><span>        eprintln!(&quot;</span><span style="color:#a3be8c;">State conflict: </span><span style="color:#d08770;">{}</span><span>&quot;, message);
+</span><span>        </span><span style="color:#65737e;">// The existing field has a higher-trust state
+</span><span>    }
+</span><span>    Err(e) =&gt; </span><span style="color:#b48ead;">return </span><span>Err(e.</span><span style="color:#96b5b4;">into</span><span>()),
+</span><span>}
+</span></code></pre>
+
+</article>
+
+  </main>
+  <footer>
+    <p>
+      openeruka — MIT —
+      <a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka">github.com/dirmacs/openeruka</a>
+    </p>
+    <p>
+      Part of the <a href="https://dirmacs.com">DIRMACS</a> ecosystem ·
+      <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> ·
+      <a href="https://github.com/dirmacs/eruka-mcp">eruka-mcp</a> ·
+      <a href="https:&#x2F;&#x2F;docs.rs&#x2F;openeruka">docs.rs</a>
+    </p>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ecosystem &amp; Backlinks | openeruka</title>
+  <meta name="description" content="How openeruka fits into the DIRMACS ecosystem and related projects">
+  <link rel="icon" type="image/svg+xml" href="https://dirmacs.github.io/openeruka/openeruka-logo.svg">
+  <link rel="stylesheet" href="https://dirmacs.github.io/openeruka/style.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/">
+      <img src="https://dirmacs.github.io/openeruka/openeruka-logo.svg" alt="" class="brand-logo">
+      openeruka
+    </a>
+    <ul>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/getting-started/">Get started</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/server/">Server API</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/types/">Types</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/client/">Client</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/ecosystem/">Ecosystem</a></li>
+      <li><a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka" target="_blank" rel="noopener">GitHub ↗</a></li>
+      <li><a href="https:&#x2F;&#x2F;crates.io&#x2F;crates&#x2F;openeruka" target="_blank" rel="noopener">crates.io ↗</a></li>
+    </ul>
+  </nav>
+  <main>
+    
+<article class="doc-page">
+  <h1>Ecosystem &amp; Backlinks</h1>
+  <p>openeruka is the open-source foundation of the Eruka knowledge memory stack. Here's how everything connects.</p>
+<h2 id="the-stack">The stack</h2>
+<pre style="background-color:#2b303b;color:#c0c5ce;"><code><span>┌─────────────────────────────────────────────────────┐
+</span><span>│                  AI clients                          │
+</span><span>│  Claude Desktop · Claude Code · Cursor · VS Code    │
+</span><span>└────────────────────┬────────────────────────────────┘
+</span><span>                     │ MCP (JSON-RPC / SSE)
+</span><span>┌────────────────────▼────────────────────────────────┐
+</span><span>│                  eruka-mcp                           │
+</span><span>│  MCP server — bridges AI tools to Eruka backends    │
+</span><span>│  github.com/dirmacs/eruka-mcp · crates.io           │
+</span><span>└──────────┬──────────────────────┬───────────────────┘
+</span><span>           │ HTTP (local)         │ HTTP (managed)
+</span><span>┌──────────▼──────────┐  ┌───────▼───────────────────┐
+</span><span>│   openeruka         │  │   eruka.dirmacs.com        │
+</span><span>│   (this project)    │  │   Managed tier             │
+</span><span>│   SQLite / redb     │  │   PostgreSQL + pgvector    │
+</span><span>│   No account needed │  │   Quality scoring (B6)     │
+</span><span>│   github.com/       │  │   Knowledge decay          │
+</span><span>│   dirmacs/openeruka │  │   Multi-tenant auth        │
+</span><span>└─────────────────────┘  └────────────────────────────┘
+</span></code></pre>
+<h2 id="dirmacs-projects">DIRMACS projects</h2>
+<h3 id="eruka-mcp">eruka-mcp</h3>
+<p><strong><a href="https://github.com/dirmacs/eruka-mcp">github.com/dirmacs/eruka-mcp</a></strong> · <a href="https://dirmacs.github.io/eruka-mcp">docs</a> · <a href="https://crates.io/crates/eruka-mcp">crates.io</a></p>
+<p>MCP server that bridges any MCP-compatible AI tool to openeruka or eruka.dirmacs.com. Provides 17 tools including context read/write, gap detection, constraint injection, and graph traversal.</p>
+<p>Default URL is <code>http://localhost:8080</code> — connects to openeruka with zero configuration.</p>
+<h3 id="eruka-dirmacs-com">eruka.dirmacs.com</h3>
+<p><strong><a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a></strong></p>
+<p>The managed Eruka service. Same REST API surface as openeruka, plus:</p>
+<ul>
+<li>6-layer quality scoring pipeline (B6)</li>
+<li>Knowledge decay (confidence degrades over time)</li>
+<li>Multi-tenant isolation</li>
+<li>PostgreSQL + pgvector backend</li>
+<li>OAuth and service key auth</li>
+</ul>
+<p>Use this when you need enterprise-grade memory without managing infrastructure.</p>
+<h3 id="ares">ARES</h3>
+<p><strong><a href="https://github.com/dirmacs/ares">github.com/dirmacs/ares</a></strong> · <a href="https://crates.io/crates/ares-server">crates.io</a></p>
+<p>Multi-agent runtime with LLM routing, RAG, tool calling, MCP, and workflow orchestration. ARES agents can read from and write to openeruka to maintain persistent grounded memory across sessions.</p>
+<h3 id="deagle">deagle</h3>
+<p><strong><a href="https://github.com/dirmacs/deagle">github.com/dirmacs/deagle</a></strong> · <a href="https://crates.io/crates/deagle">crates.io</a></p>
+<p>Code intelligence CLI built on tree-sitter. AST-based search, symbol graph, and codebase statistics for any language. Used internally to navigate and audit the Eruka codebase.</p>
+<h3 id="pawan">pawan</h3>
+<p><strong><a href="https://github.com/dirmacs/pawan">github.com/dirmacs/pawan</a></strong></p>
+<p>CLI coding agent with 29 tools, LSP integration, and tiered model registry. Uses openeruka via eruka-mcp for cross-session memory — it reads project context on startup so it doesn't repeat itself.</p>
+<h3 id="dstack">dstack</h3>
+<p><strong><a href="https://github.com/dirmacs/dstack">github.com/dirmacs/dstack</a></strong> · <a href="https://crates.io/crates/dstack">crates.io</a></p>
+<p>Dev stack tooling: project scaffolding, multi-platform plugin system, CI audit gates, and swarm harness for parallel agent workloads.</p>
+<h2 id="crates">Crates</h2>
+<table><thead><tr><th>Crate</th><th>Description</th><th>crates.io</th></tr></thead><tbody>
+<tr><td><code>openeruka</code></td><td>Core types — KnowledgeState, ErukaField, FieldPath</td><td><a href="https://crates.io/crates/openeruka">link</a></td></tr>
+<tr><td><code>openeruka-client</code></td><td>Typed async HTTP client</td><td><a href="https://crates.io/crates/openeruka-client">link</a></td></tr>
+<tr><td><code>openeruka-server</code></td><td>Server binary (SQLite + redb backends)</td><td><a href="https://crates.io/crates/openeruka-server">link</a></td></tr>
+<tr><td><code>eruka-mcp</code></td><td>MCP server for Eruka</td><td><a href="https://crates.io/crates/eruka-mcp">link</a></td></tr>
+<tr><td><code>ares-server</code></td><td>Multi-agent runtime</td><td><a href="https://crates.io/crates/ares-server">link</a></td></tr>
+<tr><td><code>deagle</code></td><td>Code intelligence CLI</td><td><a href="https://crates.io/crates/deagle">link</a></td></tr>
+<tr><td><code>dstack</code></td><td>Dev stack tooling</td><td><a href="https://crates.io/crates/dstack">link</a></td></tr>
+</tbody></table>
+<h2 id="linking-back-to-openeruka">Linking back to openeruka</h2>
+<p>If you build on top of openeruka, we'd appreciate a link back:</p>
+<ul>
+<li>README badge: <code>[![openeruka](https://img.shields.io/badge/memory-openeruka-6c8ebf)](https://dirmacs.github.io/openeruka)</code></li>
+<li>Docs mention: "Uses <a href="https://github.com/dirmacs/openeruka">openeruka</a> for grounded context memory"</li>
+</ul>
+<h2 id="company">Company</h2>
+<p>openeruka is built and maintained by <a href="https://dirmacs.com">DIRMACS</a>, a Hyderabad-based AI infrastructure company. The managed tier at <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> funds continued development of the open-source core.</p>
+
+</article>
+
+  </main>
+  <footer>
+    <p>
+      openeruka — MIT —
+      <a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka">github.com/dirmacs/openeruka</a>
+    </p>
+    <p>
+      Part of the <a href="https://dirmacs.com">DIRMACS</a> ecosystem ·
+      <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> ·
+      <a href="https://github.com/dirmacs/eruka-mcp">eruka-mcp</a> ·
+      <a href="https:&#x2F;&#x2F;docs.rs&#x2F;openeruka">docs.rs</a>
+    </p>
+  </footer>
+</body>
+</html>

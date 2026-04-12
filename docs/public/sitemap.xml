@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+        <loc>https://dirmacs.github.io/openeruka/</loc>
+    </url>
+    <url>
+        <loc>https://dirmacs.github.io/openeruka/client/</loc>
+    </url>
+    <url>
+        <loc>https://dirmacs.github.io/openeruka/ecosystem/</loc>
+    </url>
+    <url>
+        <loc>https://dirmacs.github.io/openeruka/getting-started/</loc>
+    </url>
+    <url>
+        <loc>https://dirmacs.github.io/openeruka/server/</loc>
+    </url>
+    <url>
+        <loc>https://dirmacs.github.io/openeruka/types/</loc>
+    </url>
+</urlset>

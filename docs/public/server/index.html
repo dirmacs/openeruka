@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Server API Reference | openeruka</title>
+  <meta name="description" content="REST API endpoints for the openeruka server binary">
+  <link rel="icon" type="image/svg+xml" href="https://dirmacs.github.io/openeruka/openeruka-logo.svg">
+  <link rel="stylesheet" href="https://dirmacs.github.io/openeruka/style.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/">
+      <img src="https://dirmacs.github.io/openeruka/openeruka-logo.svg" alt="" class="brand-logo">
+      openeruka
+    </a>
+    <ul>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/getting-started/">Get started</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/server/">Server API</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/types/">Types</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/client/">Client</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/ecosystem/">Ecosystem</a></li>
+      <li><a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka" target="_blank" rel="noopener">GitHub ↗</a></li>
+      <li><a href="https:&#x2F;&#x2F;crates.io&#x2F;crates&#x2F;openeruka" target="_blank" rel="noopener">crates.io ↗</a></li>
+    </ul>
+  </nav>
+  <main>
+    
+<article class="doc-page">
+  <h1>Server API Reference</h1>
+  <p>The <code>openeruka-server</code> crate provides the <code>openeruka</code> binary with a REST API compatible with the <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> managed service surface.</p>
+<h2 id="run-the-server">Run the server</h2>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Default: SQLite at ./eruka.db, port 8080
+</span><span style="color:#bf616a;">openeruka</span><span> serve
+</span><span>
+</span><span style="color:#65737e;"># Custom port and database path
+</span><span style="color:#bf616a;">openeruka --db</span><span> /var/lib/openeruka/ctx.db serve</span><span style="color:#bf616a;"> --port</span><span> 9090
+</span><span>
+</span><span style="color:#65737e;"># redb backend (build with --features redb)
+</span><span style="color:#bf616a;">openeruka --backend</span><span> redb serve
+</span></code></pre>
+<p>Environment variables:</p>
+<table><thead><tr><th>Variable</th><th>Description</th><th>Default</th></tr></thead><tbody>
+<tr><td><code>OPENERUKA_BACKEND</code></td><td><code>sqlite</code> or <code>redb</code></td><td><code>sqlite</code></td></tr>
+<tr><td><code>OPENERUKA_DB</code></td><td>Database file path</td><td><code>./eruka.db</code></td></tr>
+<tr><td><code>RUST_LOG</code></td><td>Log level</td><td><code>openeruka=info</code></td></tr>
+</tbody></table>
+<hr />
+<h2 id="endpoints">Endpoints</h2>
+<p>All endpoints accept and return <code>application/json</code>.</p>
+<h3 id="get-health"><code>GET /health</code></h3>
+<p>Health check.</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">curl</span><span> http://localhost:8080/health
+</span><span style="color:#65737e;"># {&quot;status&quot;:&quot;ok&quot;,&quot;version&quot;:&quot;0.1.0&quot;}
+</span></code></pre>
+<hr />
+<h3 id="post-fields"><code>POST /fields</code></h3>
+<p>Write a context field. Enforces the knowledge state invariant — an <code>inferred</code> write to a <code>confirmed</code> field is rejected with <code>409 Conflict</code>.</p>
+<p><strong>Request body:</strong></p>
+<pre data-lang="json" style="background-color:#2b303b;color:#c0c5ce;" class="language-json "><code class="language-json" data-lang="json"><span>{
+</span><span>  &quot;</span><span style="color:#a3be8c;">workspace_id</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">default</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">path</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">identity/company_name</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">value</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">ACME Corp</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">knowledge_state</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">confirmed</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">confidence</span><span>&quot;: </span><span style="color:#d08770;">1.0</span><span>,
+</span><span>  &quot;</span><span style="color:#a3be8c;">source</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">user_input</span><span>&quot;
+</span><span>}
+</span></code></pre>
+<p><strong>Fields:</strong></p>
+<table><thead><tr><th>Field</th><th>Type</th><th>Required</th><th>Notes</th></tr></thead><tbody>
+<tr><td><code>workspace_id</code></td><td>string</td><td>yes</td><td>Namespaces fields — use any string</td></tr>
+<tr><td><code>path</code></td><td>string</td><td>yes</td><td>Slash-separated, e.g. <code>identity/name</code></td></tr>
+<tr><td><code>value</code></td><td>any JSON</td><td>yes</td><td>String, number, object, array</td></tr>
+<tr><td><code>knowledge_state</code></td><td>string</td><td>yes</td><td><code>confirmed</code> / <code>inferred</code> / <code>uncertain</code> / <code>unknown</code></td></tr>
+<tr><td><code>confidence</code></td><td>float</td><td>yes</td><td>0.0 – 1.0</td></tr>
+<tr><td><code>source</code></td><td>string</td><td>yes</td><td><code>user_input</code> / <code>agent_inference</code> / <code>api_ingestion</code> / <code>system_default</code></td></tr>
+</tbody></table>
+<p><strong>Response:</strong> <code>200 OK</code> with the stored <code>ErukaField</code>.</p>
+<p><strong>Error:</strong> <code>409 Conflict</code> when the incoming state cannot overwrite the existing one.</p>
+<hr />
+<h3 id="get-fields-workspace-id-path"><code>GET /fields/:workspace_id/:path</code></h3>
+<p>Read a single field by exact path.</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">curl</span><span> http://localhost:8080/fields/default/identity/company_name
+</span></code></pre>
+<p>Response:</p>
+<pre data-lang="json" style="background-color:#2b303b;color:#c0c5ce;" class="language-json "><code class="language-json" data-lang="json"><span>{
+</span><span>  &quot;</span><span style="color:#a3be8c;">id</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">...</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">workspace_id</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">default</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">path</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">identity/company_name</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">value</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">ACME Corp</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">knowledge_state</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">confirmed</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">confidence</span><span>&quot;: </span><span style="color:#d08770;">1.0</span><span>,
+</span><span>  &quot;</span><span style="color:#a3be8c;">source</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">user_input</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">created_at</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">...</span><span>&quot;,
+</span><span>  &quot;</span><span style="color:#a3be8c;">updated_at</span><span>&quot;: &quot;</span><span style="color:#a3be8c;">...</span><span>&quot;
+</span><span>}
+</span></code></pre>
+<p>Returns <code>404</code> if not found.</p>
+<hr />
+<h3 id="get-fields-workspace-id"><code>GET /fields/:workspace_id</code></h3>
+<p>List all fields for a workspace. Optionally filter by prefix.</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># All fields
+</span><span style="color:#bf616a;">curl</span><span> http://localhost:8080/fields/default
+</span><span>
+</span><span style="color:#65737e;"># Fields under identity/
+</span><span style="color:#bf616a;">curl </span><span>&quot;</span><span style="color:#a3be8c;">http://localhost:8080/fields/default?prefix=identity</span><span>&quot;
+</span></code></pre>
+<p>Response:</p>
+<pre data-lang="json" style="background-color:#2b303b;color:#c0c5ce;" class="language-json "><code class="language-json" data-lang="json"><span>{ &quot;</span><span style="color:#a3be8c;">fields</span><span>&quot;: [ { </span><span style="background-color:#bf616a;color:#2b303b;">...</span><span> }, { </span><span style="background-color:#bf616a;color:#2b303b;">...</span><span> } ] }
+</span></code></pre>
+<hr />
+<h3 id="get-entities-workspace-id"><code>GET /entities/:workspace_id</code></h3>
+<p>List all entity nodes in the knowledge graph for a workspace.</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">curl</span><span> http://localhost:8080/entities/default
+</span></code></pre>
+<hr />
+<h3 id="get-edges-workspace-id"><code>GET /edges/:workspace_id</code></h3>
+<p>List all typed edges in the knowledge graph.</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#bf616a;">curl</span><span> http://localhost:8080/edges/default
+</span></code></pre>
+<hr />
+<h2 id="cli-subcommands">CLI subcommands</h2>
+<p>The <code>openeruka</code> binary also exposes a CLI for scripting:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Read a field
+</span><span style="color:#bf616a;">openeruka</span><span> get &lt;workspace_id&gt; &lt;path&gt;
+</span><span>
+</span><span style="color:#65737e;"># Write a field
+</span><span style="color:#bf616a;">openeruka</span><span> set &lt;workspace_id&gt; &lt;path&gt; &lt;value_json&gt; </span><span style="color:#b48ead;">[</span><span>--state confirmed|inferred|uncertain|unknown</span><span style="color:#b48ead;">]
+</span></code></pre>
+<p>Examples:</p>
+<pre data-lang="bash" style="background-color:#2b303b;color:#c0c5ce;" class="language-bash "><code class="language-bash" data-lang="bash"><span style="color:#65737e;"># Write a confirmed fact
+</span><span style="color:#bf616a;">openeruka</span><span> set default identity/company &#39;</span><span style="color:#a3be8c;">&quot;ACME Corp&quot;</span><span>&#39;</span><span style="color:#bf616a;"> --state</span><span> confirmed
+</span><span>
+</span><span style="color:#65737e;"># Read it back
+</span><span style="color:#bf616a;">openeruka</span><span> get default identity/company
+</span><span style="color:#65737e;"># &quot;ACME Corp&quot;
+</span><span style="color:#65737e;">#   state: confirmed  confidence: 100%
+</span><span>
+</span><span style="color:#65737e;"># Write a JSON object value
+</span><span style="color:#bf616a;">openeruka</span><span> set default market/tam &#39;</span><span style="color:#a3be8c;">{&quot;amount&quot;:4200000000,&quot;currency&quot;:&quot;USD&quot;}</span><span>&#39;</span><span style="color:#bf616a;"> --state</span><span> inferred
+</span></code></pre>
+
+</article>
+
+  </main>
+  <footer>
+    <p>
+      openeruka — MIT —
+      <a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka">github.com/dirmacs/openeruka</a>
+    </p>
+    <p>
+      Part of the <a href="https://dirmacs.com">DIRMACS</a> ecosystem ·
+      <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> ·
+      <a href="https://github.com/dirmacs/eruka-mcp">eruka-mcp</a> ·
+      <a href="https:&#x2F;&#x2F;docs.rs&#x2F;openeruka">docs.rs</a>
+    </p>
+  </footer>
+</body>
+</html>

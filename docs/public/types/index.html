@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Types Reference | openeruka</title>
+  <meta name="description" content="Core types in the openeruka crate — KnowledgeState, ErukaField, FieldPath">
+  <link rel="icon" type="image/svg+xml" href="https://dirmacs.github.io/openeruka/openeruka-logo.svg">
+  <link rel="stylesheet" href="https://dirmacs.github.io/openeruka/style.css">
+</head>
+<body>
+  <nav class="topnav">
+    <a class="brand" href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/">
+      <img src="https://dirmacs.github.io/openeruka/openeruka-logo.svg" alt="" class="brand-logo">
+      openeruka
+    </a>
+    <ul>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/getting-started/">Get started</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/server/">Server API</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/types/">Types</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/client/">Client</a></li>
+      <li><a href="https:&#x2F;&#x2F;dirmacs.github.io&#x2F;openeruka/ecosystem/">Ecosystem</a></li>
+      <li><a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka" target="_blank" rel="noopener">GitHub ↗</a></li>
+      <li><a href="https:&#x2F;&#x2F;crates.io&#x2F;crates&#x2F;openeruka" target="_blank" rel="noopener">crates.io ↗</a></li>
+    </ul>
+  </nav>
+  <main>
+    
+<article class="doc-page">
+  <h1>Types Reference</h1>
+  <p>The <code>openeruka</code> crate provides the shared type definitions used by the server, client, and any Rust application working with knowledge state memory.</p>
+<p>Add it to your project:</p>
+<pre data-lang="toml" style="background-color:#2b303b;color:#c0c5ce;" class="language-toml "><code class="language-toml" data-lang="toml"><span>[dependencies]
+</span><span style="color:#bf616a;">openeruka </span><span>= &quot;</span><span style="color:#a3be8c;">0.1</span><span>&quot;
+</span></code></pre>
+<h2 id="knowledgestate">KnowledgeState</h2>
+<p>The core invariant: <strong>Confirmed facts cannot be overwritten by Inferred guesses.</strong></p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub enum </span><span>KnowledgeState {
+</span><span>    Confirmed,   </span><span style="color:#65737e;">// Verified by authoritative source — highest trust
+</span><span>    Inferred,    </span><span style="color:#65737e;">// Derived from other facts — medium trust
+</span><span>    Uncertain,   </span><span style="color:#65737e;">// Known to be questionable
+</span><span>    Unknown,     </span><span style="color:#65737e;">// No information available
+</span><span>}
+</span></code></pre>
+<p>The hierarchy: <code>Confirmed &gt; Inferred &gt; Uncertain &gt; Unknown</code></p>
+<h3 id="can-overwrite"><code>can_overwrite</code></h3>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">impl </span><span>KnowledgeState {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">can_overwrite</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>, </span><span style="color:#bf616a;">existing</span><span>: &amp;KnowledgeState) -&gt; </span><span style="color:#b48ead;">bool
+</span><span>}
+</span></code></pre>
+<p>Returns <code>true</code> if the incoming state is allowed to replace the existing one. A <code>Confirmed</code> write can always overwrite. An <code>Inferred</code> write cannot overwrite a <code>Confirmed</code> field — the write is rejected with <code>StoreError::KnowledgeStateConflict</code>.</p>
+<table><thead><tr><th>Incoming \ Existing</th><th>Confirmed</th><th>Inferred</th><th>Uncertain</th><th>Unknown</th></tr></thead><tbody>
+<tr><td><strong>Confirmed</strong></td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td><strong>Inferred</strong></td><td>✗</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td><strong>Uncertain</strong></td><td>✗</td><td>✗</td><td>✓</td><td>✓</td></tr>
+<tr><td><strong>Unknown</strong></td><td>✗</td><td>✗</td><td>✗</td><td>✓</td></tr>
+</tbody></table>
+<h2 id="erukafield">ErukaField</h2>
+<p>A stored context field — the fundamental unit of knowledge:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub struct </span><span>ErukaField {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">id</span><span>: Uuid,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">workspace_id</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">path</span><span>: String,           </span><span style="color:#65737e;">// e.g., &quot;identity/company_name&quot;
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">value</span><span>: serde_json::Value,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">knowledge_state</span><span>: KnowledgeState,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">confidence</span><span>: </span><span style="color:#b48ead;">f64</span><span>,        </span><span style="color:#65737e;">// 0.0 – 1.0
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">source</span><span>: SourceType,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">created_at</span><span>: DateTime&lt;Utc&gt;,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">updated_at</span><span>: DateTime&lt;Utc&gt;,
+</span><span>}
+</span></code></pre>
+<h2 id="erukafieldwrite">ErukaFieldWrite</h2>
+<p>The request type for writing a field:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub struct </span><span>ErukaFieldWrite {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">workspace_id</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">path</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">value</span><span>: serde_json::Value,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">knowledge_state</span><span>: KnowledgeState,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">confidence</span><span>: </span><span style="color:#b48ead;">f64</span><span>,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">source</span><span>: SourceType,
+</span><span>}
+</span></code></pre>
+<h2 id="sourcetype">SourceType</h2>
+<p>Where a piece of knowledge came from:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub enum </span><span>SourceType {
+</span><span>    UserInput,       </span><span style="color:#65737e;">// Directly provided by a user
+</span><span>    AgentInference,  </span><span style="color:#65737e;">// Derived by an AI agent
+</span><span>    ApiIngestion,    </span><span style="color:#65737e;">// Imported from an external system
+</span><span>    SystemDefault,   </span><span style="color:#65737e;">// Built-in default value
+</span><span>}
+</span></code></pre>
+<h2 id="fieldpath">FieldPath</h2>
+<p>Helper for working with dot-separated or slash-separated paths:</p>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub struct </span><span>FieldPath(pub String);
+</span><span>
+</span><span style="color:#b48ead;">impl </span><span>FieldPath {
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">category</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; &amp;</span><span style="color:#b48ead;">str   </span><span style="color:#65737e;">// &quot;identity&quot; from &quot;identity/company_name&quot;
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">key</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; &amp;</span><span style="color:#b48ead;">str        </span><span style="color:#65737e;">// &quot;company_name&quot; from &quot;identity/company_name&quot;
+</span><span>    </span><span style="color:#b48ead;">pub fn </span><span style="color:#8fa1b3;">is_wildcard</span><span>(&amp;</span><span style="color:#bf616a;">self</span><span>) -&gt; </span><span style="color:#b48ead;">bool </span><span style="color:#65737e;">// true for &quot;*&quot;
+</span><span>}
+</span></code></pre>
+<h2 id="graph-types">Graph types</h2>
+<pre data-lang="rust" style="background-color:#2b303b;color:#c0c5ce;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#b48ead;">pub struct </span><span>ErukaEntity {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">id</span><span>: Uuid,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">workspace_id</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">entity_type</span><span>: EntityType,  </span><span style="color:#65737e;">// Person, Company, Product, Concept, Event
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">name</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">properties</span><span>: serde_json::Value,
+</span><span>}
+</span><span>
+</span><span style="color:#b48ead;">pub struct </span><span>ErukaEdge {
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">id</span><span>: Uuid,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">workspace_id</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">from_entity_id</span><span>: Uuid,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">to_entity_id</span><span>: Uuid,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">relation</span><span>: String,
+</span><span>    </span><span style="color:#b48ead;">pub </span><span style="color:#bf616a;">weight</span><span>: </span><span style="color:#b48ead;">f64</span><span>,
+</span><span>}
+</span></code></pre>
+
+</article>
+
+  </main>
+  <footer>
+    <p>
+      openeruka — MIT —
+      <a href="https:&#x2F;&#x2F;github.com&#x2F;dirmacs&#x2F;openeruka">github.com/dirmacs/openeruka</a>
+    </p>
+    <p>
+      Part of the <a href="https://dirmacs.com">DIRMACS</a> ecosystem ·
+      <a href="https://eruka.dirmacs.com">eruka.dirmacs.com</a> ·
+      <a href="https://github.com/dirmacs/eruka-mcp">eruka-mcp</a> ·
+      <a href="https:&#x2F;&#x2F;docs.rs&#x2F;openeruka">docs.rs</a>
+    </p>
+  </footer>
+</body>
+</html>
