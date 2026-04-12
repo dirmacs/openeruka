@@ -7,7 +7,7 @@
 
 **The open-source knowledge state memory server for AI agents.**
 
-openeruka is a fully self-contained memory server that enforces the knowledge state invariant: **Confirmed facts cannot be overwritten by Inferred guesses.** Run it locally, connect [eruka-mcp](https://github.com/dirmacs/eruka-mcp) to it, and your AI agent gets grounded, protected memory — no hosted service required.
+openeruka is a fully self-contained memory server that enforces the knowledge state invariant: **Confirmed facts cannot be overwritten by Inferred guesses.** Run it locally, connect [eruka-mcp](https://github.com/dirmacs/eruka-mcp) to it, and your AI agent gets grounded, protected memory. Ships as a single binary with SQLite bundled — production-ready in one command.
 
 ```bash
 # Install the server binary
