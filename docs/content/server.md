@@ -3,7 +3,7 @@ title = "Server API Reference"
 description = "REST API endpoints for the openeruka server binary"
 +++
 
-The `openeruka-server` crate provides the `openeruka` binary with a REST API compatible with the [eruka.dirmacs.com](https://eruka.dirmacs.com) managed service surface.
+The `openeruka` crate (with the `server` feature, enabled by default) provides the `openeruka` binary with a REST API compatible with the [eruka.dirmacs.com](https://eruka.dirmacs.com) managed service surface.
 
 ## Run the server
 

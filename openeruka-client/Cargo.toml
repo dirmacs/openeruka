@@ -13,7 +13,7 @@ repository.workspace = true
 homepage.workspace = true
 
 [dependencies]
-openeruka = { path = "../openeruka", version = "0.1" }
+openeruka = { path = "../openeruka", version = "0.2", default-features = false }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }

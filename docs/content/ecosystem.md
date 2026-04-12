@@ -74,9 +74,8 @@ Dev stack tooling: project scaffolding, multi-platform plugin system, CI audit g
 
 | Crate | Description | crates.io |
 |-------|-------------|-----------|
-| `openeruka` | Core types — KnowledgeState, ErukaField, FieldPath | [link](https://crates.io/crates/openeruka) |
+| `openeruka` | Types + server binary (SQLite + redb backends) | [link](https://crates.io/crates/openeruka) |
 | `openeruka-client` | Typed async HTTP client | [link](https://crates.io/crates/openeruka-client) |
-| `openeruka-server` | Server binary (SQLite + redb backends) | [link](https://crates.io/crates/openeruka-server) |
 | `eruka-mcp` | MCP server for Eruka | [link](https://crates.io/crates/eruka-mcp) |
 | `ares-server` | Multi-agent runtime | [link](https://crates.io/crates/ares-server) |
 | `deagle` | Code intelligence CLI | [link](https://crates.io/crates/deagle) |

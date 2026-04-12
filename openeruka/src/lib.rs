@@ -41,3 +41,8 @@ pub use field::{ErukaField, ErukaFieldWrite, FieldPath, KnowledgeState, Confiden
 pub use entity::{ErukaEntity, EntityType};
 pub use edge::{ErukaEdge, RelationType};
 pub use error::ErukaError;
+
+#[cfg(feature = "server")]
+pub mod store;
+#[cfg(feature = "server")]
+pub mod api;

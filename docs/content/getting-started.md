@@ -11,10 +11,8 @@ description = "Install openeruka and connect it to your AI agent in 5 minutes"
 ## Install the server
 
 ```bash
-cargo install openeruka-server
+cargo install openeruka
 ```
-
-This installs the `openeruka` binary.
 
 ## Start the server
 

@@ -11,7 +11,7 @@ openeruka is a fully self-contained memory server that enforces the knowledge st
 
 ```bash
 # Install the server binary
-cargo install openeruka-server   # installs the `openeruka` binary
+cargo install openeruka
 
 # Start it
 openeruka serve                  # default port 8080
@@ -72,7 +72,7 @@ curl "http://localhost:8080/api/v1/context?workspace_id=my-project&path=identity
 
 ```toml
 [dependencies]
-openeruka = "0.1"
+openeruka = { version = "0.2", default-features = false }
 openeruka-client = "0.1"
 ```
 
