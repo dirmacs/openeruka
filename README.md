@@ -116,7 +116,7 @@ ERUKA_API_URL=https://eruka.dirmacs.com ERUKA_API_KEY=sk:your-key eruka-mcp
 
 ## DIRMACS ecosystem
 
-- **[eruka-mcp](https://github.com/dirmacs/eruka-mcp)** — MCP client for openeruka and managed Eruka
+- **[eruka-mcp](https://github.com/dirmacs/eruka-mcp)** — MCP client for openeruka and [eruka.dirmacs.com](https://eruka.dirmacs.com)
 - **[ARES](https://github.com/dirmacs/ares)** — multi-agent runtime that uses Eruka for context
 - **[pawan](https://github.com/dirmacs/pawan)** — CLI coding agent with Eruka memory
 - **[deagle](https://github.com/dirmacs/deagle)** — code intelligence engine
