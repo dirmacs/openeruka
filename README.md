@@ -10,12 +10,14 @@
 openeruka is a fully self-contained memory server that enforces the knowledge state invariant: **Confirmed facts cannot be overwritten by Inferred guesses.** Run it locally, connect [eruka-mcp](https://github.com/dirmacs/eruka-mcp) to it, and your AI agent gets grounded, protected memory — no hosted service required.
 
 ```bash
-# Start the server locally
-cargo install openeruka
-openeruka serve --port 8080
+# Install the server binary
+cargo install openeruka-server   # installs the `openeruka` binary
+
+# Start it
+openeruka serve                  # default port 8080
 
 # Connect Claude Code / Claude Desktop via eruka-mcp
-# Set ERUKA_API_URL=http://localhost:8080 in eruka-mcp config
+# Default ERUKA_API_URL is http://localhost:8080 — no extra config needed
 ```
 
 ## The knowledge state invariant
