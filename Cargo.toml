@@ -1,0 +1,24 @@
+[workspace]
+members = [
+    "openeruka",
+    "openeruka-client",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Baalateja Kataru <baalateja.k@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/dirmacs/openeruka"
+homepage = "https://dirmacs.github.io/openeruka"
+documentation = "https://docs.rs/openeruka"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4", "serde"] }
+thiserror = "1"
+tokio = { version = "1", features = ["full"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }

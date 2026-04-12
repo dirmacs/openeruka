@@ -1,0 +1,21 @@
+[package]
+name = "openeruka"
+description = "Open core types and traits for the Eruka context memory system"
+keywords = ["memory", "context", "knowledge-graph", "ai-agent", "eruka"]
+categories = ["data-structures", "api-bindings"]
+readme = "../README.md"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]

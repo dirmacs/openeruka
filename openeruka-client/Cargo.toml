@@ -1,0 +1,21 @@
+[package]
+name = "openeruka-client"
+description = "Typed async HTTP client for the Eruka context memory API"
+keywords = ["eruka", "memory", "context", "ai-agent", "client"]
+categories = ["api-bindings", "web-programming::http-client"]
+readme = "../README.md"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[dependencies]
+openeruka = { path = "../openeruka", version = "0.1" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+reqwest = { workspace = true }
+tokio = { workspace = true }
+thiserror = { workspace = true }
