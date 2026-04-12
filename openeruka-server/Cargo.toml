@@ -4,6 +4,7 @@ description = "Standalone openeruka server — SQLite-backed knowledge state mem
 keywords = ["eruka", "memory", "knowledge-graph", "ai-agent", "server"]
 categories = ["command-line-utilities", "web-programming"]
 readme = "../README.md"
+documentation = "https://docs.rs/openeruka-server"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true

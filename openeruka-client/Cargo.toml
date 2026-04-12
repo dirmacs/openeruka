@@ -4,6 +4,7 @@ description = "Typed async HTTP client for the Eruka context memory API"
 keywords = ["eruka", "memory", "context", "ai-agent", "client"]
 categories = ["api-bindings", "web-programming::http-client"]
 readme = "../README.md"
+documentation = "https://docs.rs/openeruka-client"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
