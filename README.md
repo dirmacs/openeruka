@@ -5,81 +5,126 @@
 [![CI](https://github.com/dirmacs/openeruka/actions/workflows/ci.yml/badge.svg)](https://github.com/dirmacs/openeruka/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
-Open core types and HTTP client for the [Eruka](https://eruka.dirmacs.com) context memory system.
+**The open-source knowledge state memory server for AI agents.**
 
-Eruka is a structured, knowledge-state-aware memory layer for AI agents. This crate gives you the Rust types and async HTTP client to integrate any Rust project with a hosted Eruka instance — without pulling in the full Eruka engine.
+openeruka is a fully self-contained memory server that enforces the knowledge state invariant: **Confirmed facts cannot be overwritten by Inferred guesses.** Run it locally, connect [eruka-mcp](https://github.com/dirmacs/eruka-mcp) to it, and your AI agent gets grounded, protected memory — no hosted service required.
 
-## What's in this crate
+```bash
+# Start the server locally
+cargo install openeruka
+openeruka serve --port 8080
 
-| Crate | What it provides |
-|---|---|
-| `openeruka` | Core types: `KnowledgeState`, `ErukaField`, `FieldPath`, `ErukaEntity`, `ErukaEdge` |
-| `openeruka-client` | Typed async HTTP client for the [Eruka API](https://eruka.dirmacs.com) |
+# Connect Claude Code / Claude Desktop via eruka-mcp
+# Set ERUKA_API_URL=http://localhost:8080 in eruka-mcp config
+```
+
+## The knowledge state invariant
+
+```rust
+use openeruka::KnowledgeState;
+
+// The core contract — enforced server-side, not advisory
+assert!( KnowledgeState::Confirmed.can_overwrite(&KnowledgeState::Inferred));
+assert!(!KnowledgeState::Inferred.can_overwrite(&KnowledgeState::Confirmed));
+```
+
+When your agent tries to overwrite a `Confirmed` fact with an `Inferred` guess, the server returns `409 Conflict`. LLM hallucinations cannot corrupt verified knowledge. **No other memory system enforces this.**
+
+## Interaction surfaces
+
+openeruka exposes three equivalent interfaces:
+
+| Interface | Command | Use case |
+|---|---|---|
+| **REST API** | `openeruka serve` | Connect any HTTP client, agent, or `openeruka-client` |
+| **MCP server** | `openeruka mcp` | Claude Desktop, Claude Code, Cursor via [eruka-mcp](https://github.com/dirmacs/eruka-mcp) |
+| **CLI** | `openeruka get/set` | Quick reads and writes from the terminal |
+
+All three share the same SQLite backend and enforce the same knowledge state rules.
 
 ## Quick start
 
+```bash
+# Install
+cargo install openeruka
+
+# Start REST server (SQLite backend, default ./eruka.db)
+openeruka serve
+
+# Write a confirmed fact
+curl -X POST http://localhost:8080/api/v1/context \
+  -H "Content-Type: application/json" \
+  -d '{"workspace_id":"my-project","path":"identity/company_name","value":"Acme Corp","knowledge_state":"CONFIRMED","confidence":1.0,"source":"user_input"}'
+
+# Try to overwrite with an inferred guess — rejected with 409
+curl -X POST http://localhost:8080/api/v1/context \
+  -H "Content-Type: application/json" \
+  -d '{"workspace_id":"my-project","path":"identity/company_name","value":"Acme AI Labs","knowledge_state":"INFERRED","confidence":0.7,"source":"agent_inference"}'
+# → 409 Conflict: field is CONFIRMED, write has lower knowledge state
+
+# Read it back — still the original
+curl "http://localhost:8080/api/v1/context?workspace_id=my-project&path=identity/company_name"
+```
+
+## Use as a library
+
 ```toml
-# Cargo.toml
 [dependencies]
 openeruka = "0.1"
 openeruka-client = "0.1"
 ```
 
 ```rust
-use openeruka_client::ErukaClient;
-use openeruka::KnowledgeState;
+// Embed SqliteContextStore in your own Rust agent
+use openeruka::{SqliteContextStore, ContextStore, ErukaFieldWrite, KnowledgeState, SourceType};
 
-#[tokio::main]
-async fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let client = ErukaClient::new(
-        "https://eruka.dirmacs.com",
-        &std::env::var("ERUKA_API_KEY")?,
-    );
+let store = SqliteContextStore::open("./eruka.db").await?;
 
-    // Read a confirmed fact
-    if let Some(field) = client.get_field("my-workspace-id", "identity/company_name").await? {
-        println!("Company: {:?} ({})", field.value, field.knowledge_state);
-    }
-
-    // Write a new field
-    // Note: Confirmed fields cannot be overwritten by Inferred writes — the
-    // server enforces the knowledge state invariant (returns 409 Conflict).
-    Ok(())
-}
+// Write enforces the invariant
+store.write_field("my-ws", ErukaFieldWrite {
+    path: "identity/name".to_string(),
+    value: serde_json::json!("DIRMACS"),
+    knowledge_state: KnowledgeState::Confirmed,
+    confidence: 1.0,
+    source: SourceType::UserInput,
+}).await?;
 ```
 
-## The knowledge state invariant
+## openeruka vs eruka.dirmacs.com
 
-The defining property of Eruka (and openeruka) is that not all facts are equal:
+[eruka-mcp](https://github.com/dirmacs/eruka-mcp) can connect to either:
 
+```bash
+# Local openeruka (OSS, SQLite, single-tenant)
+ERUKA_API_URL=http://localhost:8080 eruka-mcp
+
+# Managed Eruka (PostgreSQL, multi-tenant, enterprise features)
+ERUKA_API_URL=https://eruka.dirmacs.com ERUKA_API_KEY=sk:your-key eruka-mcp
 ```
-CONFIRMED > INFERRED > UNCERTAIN > UNKNOWN
-```
 
-A `Confirmed` fact (human-verified or system-certified) cannot be silently overwritten by an `Inferred` guess from an LLM. The server enforces this at the write path — no client-side configuration required.
-
-```rust
-use openeruka::KnowledgeState;
-
-assert!( KnowledgeState::Confirmed.can_overwrite(&KnowledgeState::Inferred));
-assert!(!KnowledgeState::Inferred.can_overwrite(&KnowledgeState::Confirmed));
-```
+| | openeruka (OSS) | eruka.dirmacs.com |
+|---|---|---|
+| Knowledge state enforcement | ✅ | ✅ |
+| REST + MCP + CLI | ✅ | ✅ |
+| SQLite (local) | ✅ | — |
+| PostgreSQL (scalable) | — | ✅ |
+| Multi-tenancy | — | ✅ |
+| B6 quality scoring | — | ✅ |
+| Datalog inference | — | ✅ |
+| Gardener pipeline | — | ✅ |
+| SLA / HIPAA / SSO | — | ✅ |
 
 ## DIRMACS ecosystem
 
-openeruka connects to these projects:
-
-- **[eruka-mcp](https://github.com/dirmacs/eruka-mcp)** — MCP server for Claude Desktop / Claude Code ([docs](https://dirmacs.github.io/eruka-mcp))
-- **[Eruka hosted API](https://eruka.dirmacs.com)** — hosted Eruka instance
-- **[ARES](https://github.com/dirmacs/ares)** — multi-agent runtime that consumes Eruka for context injection
-- **[pawan](https://github.com/dirmacs/pawan)** — CLI coding agent with Eruka memory integration
+- **[eruka-mcp](https://github.com/dirmacs/eruka-mcp)** — MCP client for openeruka and managed Eruka
+- **[ARES](https://github.com/dirmacs/ares)** — multi-agent runtime that uses Eruka for context
+- **[pawan](https://github.com/dirmacs/pawan)** — CLI coding agent with Eruka memory
 - **[deagle](https://github.com/dirmacs/deagle)** — code intelligence engine
-- **[dstack](https://github.com/dirmacs/dstack)** — dev stack tooling
-- **[DIRMACS](https://dirmacs.com)** — the company building this stack
+- **[DIRMACS](https://dirmacs.com)** — the company behind this stack
 
 ## Docs
 
-Full documentation at **[dirmacs.github.io/openeruka](https://dirmacs.github.io/openeruka)**
+**[dirmacs.github.io/openeruka](https://dirmacs.github.io/openeruka)**
 
 ## License
 
