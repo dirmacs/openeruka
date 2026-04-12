@@ -1,0 +1,38 @@
+[package]
+name = "openeruka-server"
+description = "Standalone openeruka server — SQLite-backed knowledge state memory (REST + MCP + CLI)"
+keywords = ["eruka", "memory", "knowledge-graph", "ai-agent", "server"]
+categories = ["command-line-utilities", "web-programming"]
+readme = "../README.md"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+
+[[bin]]
+name = "openeruka"
+path = "src/main.rs"
+
+[features]
+default = []
+redb = ["dep:redb"]
+
+[dependencies]
+openeruka = { path = "../openeruka", version = "0.1" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true }
+axum = { workspace = true }
+rusqlite = { workspace = true }
+clap = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+anyhow = { workspace = true }
+redb = { version = "2", optional = true }
+
+[dev-dependencies]
