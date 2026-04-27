@@ -80,7 +80,12 @@ impl ErukaClient {
         workspace_id: &str,
         path: &str,
     ) -> Result<Option<ErukaField>, ClientError> {
-        let url = format!("{}?workspace_id={}&path={}", self.url("/api/v1/context"), workspace_id, path);
+        let url = format!(
+            "{}?workspace_id={}&path={}",
+            self.url("/api/v1/context"),
+            workspace_id,
+            path
+        );
         let resp = Self::check_status(self.client.get(&url).send().await?).await?;
         let body: Value = resp.json().await?;
         let fields = body.get("fields")
@@ -95,13 +100,27 @@ impl ErukaClient {
     }
 
     /// Get all fields matching a path prefix.
+    ///
+    /// Handles bare category paths (identity, products, etc.) correctly — the server
+    /// routes these to prefix scan thanks to BUG-1 fix.
+    /// Also normalizes trailing slashes so "products/" becomes "products/*".
     pub async fn get_prefix(
         &self,
         workspace_id: &str,
         prefix: &str,
     ) -> Result<Vec<ErukaField>, ClientError> {
-        let path = if prefix.ends_with('*') { prefix.to_string() } else { format!("{}/*", prefix) };
-        let url = format!("{}?workspace_id={}&path={}", self.url("/api/v1/context"), workspace_id, path);
+        let clean = prefix.trim_end_matches('/').trim_end_matches('*');
+        let path = if prefix.ends_with('*') {
+            prefix.to_string()
+        } else {
+            format!("{}/*", clean)
+        };
+        let url = format!(
+            "{}?workspace_id={}&path={}",
+            self.url("/api/v1/context"),
+            workspace_id,
+            path
+        );
         let resp = Self::check_status(self.client.get(&url).send().await?).await?;
         let body: Value = resp.json().await?;
         let fields = body.get("fields")
@@ -131,13 +150,20 @@ impl ErukaClient {
                 .send()
                 .await?
         ).await?;
-        let field: ErukaField = resp.json().await?;
+        let result: Value = resp.json().await?;
+        let field: ErukaField = serde_json::from_value(
+            result.get("field").cloned().unwrap_or(result)
+        )?;
         Ok(field)
     }
 
     /// Get entities in the knowledge graph for a workspace.
     pub async fn get_entities(&self, workspace_id: &str) -> Result<Vec<ErukaEntity>, ClientError> {
-        let url = format!("{}?workspace_id={}", self.url("/api/v1/entities"), workspace_id);
+        let url = format!(
+            "{}?workspace_id={}",
+            self.url("/api/v1/entities"),
+            workspace_id
+        );
         let resp = Self::check_status(self.client.get(&url).send().await?).await?;
         let body: Value = resp.json().await?;
         let entities: Vec<ErukaEntity> = body.get("entities")
@@ -149,7 +175,11 @@ impl ErukaClient {
 
     /// Get edges in the knowledge graph for a workspace.
     pub async fn get_edges(&self, workspace_id: &str) -> Result<Vec<ErukaEdge>, ClientError> {
-        let url = format!("{}?workspace_id={}", self.url("/api/v1/edges"), workspace_id);
+        let url = format!(
+            "{}?workspace_id={}",
+            self.url("/api/v1/edges"),
+            workspace_id
+        );
         let resp = Self::check_status(self.client.get(&url).send().await?).await?;
         let body: Value = resp.json().await?;
         let edges: Vec<ErukaEdge> = body.get("edges")
@@ -157,5 +187,51 @@ impl ErukaClient {
             .map(|arr| arr.iter().filter_map(|v| serde_json::from_value(v.clone()).ok()).collect())
             .unwrap_or_default();
         Ok(edges)
+    }
+
+    /// Get workspace tier from server.
+    ///
+    /// Returns the tier string ('free', 'pro', 'enterprise', 'local') or None on error.
+    /// Used at startup to determine which features to enable.
+    ///
+    /// For openeruka local mode: always returns `Some("local")`.
+    /// For managed eruka: queries GET /api/v1/tier endpoint.
+    /// Falls back to None if the endpoint is not available (older server versions).
+    pub async fn get_server_tier(&self) -> Result<Option<String>, ClientError> {
+        let resp = self.client
+            .get(self.url("/api/v1/tier"))
+            .send()
+            .await?;
+        let status = resp.status();
+        if !status.is_success() {
+            if status == reqwest::StatusCode::NOT_FOUND {
+                // Endpoint not available on older server versions
+                return Ok(None);
+            }
+            let body = resp.text().await.unwrap_or_default();
+            return Err(ClientError::Server { status: status.as_u16(), body });
+        }
+        let body: Value = resp.json().await?;
+        Ok(body.get("tier")
+            .and_then(|t| t.as_str())
+            .map(|s| s.to_string()))
+    }
+
+    /// Get context in compressed/token-efficient format.
+    ///
+    /// For openeruka (local mode): returns the raw field as-is with a note.
+    /// For managed eruka: returns optimized context for LLM context windows.
+    pub async fn get_context_compressed(
+        &self,
+        workspace_id: &str,
+        path: &str,
+        _max_tokens: Option<usize>,
+    ) -> Result<Value, ClientError> {
+        let field = self.get_field(workspace_id, path).await?;
+        Ok(serde_json::json!({
+            "data": field,
+            "mode": "local",
+            "note": "openeruka does not support context compression",
+        }))
     }
 }

@@ -21,7 +21,7 @@ default = []
 redb = ["dep:redb"]
 
 [dependencies]
-openeruka = { path = "../openeruka", version = "0.1" }
+openeruka = { path = "../openeruka", version = "0.2" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
