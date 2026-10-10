@@ -35,3 +35,111 @@ jobs:
         run: cargo publish --dry-run -p openeruka
       - name: Dry-run publish openeruka-client
         run: cargo publish --dry-run -p openeruka-client
+
+  # Coverage (cargo-tarpaulin) + complexity (cargo-crap) gate.
+  #
+  # One job, one coverage run, two gates fed by it: tarpaulin runs the whole
+  # suite under instrumentation (it exits non-zero on any test failure, so the
+  # coverage run IS the test run) and writes lcov.info, which cargo-crap then
+  # scores. cargo-crap never runs tests itself — it parses source with syn and
+  # reads the LCOV, scoring CRAP(m) = CC²·(1−cov)³ + CC. Without the coverage
+  # feed every function scores cov=0 and the complexity gate would measure
+  # nothing; that is why the two live in one job.
+  #
+  # Engine is Llvm, not the default ptrace: ptrace ("ASLR disable failed:
+  # EPERM") is blocked in the estate's confined runner containers, and Llvm is
+  # the documented -Cinstrument-coverage path that llvm-tools-preview backs.
+  # The tests are hermetic (in-memory SQLite, no DB env, no network), so the
+  # job needs no services.
+  #
+  # Tool versions are pinned from release tarballs at exact versions with
+  # version assertions in the install step (which also exports PATH — $GITHUB_PATH
+  # only affects later steps): tarpaulin 0.37.5, cargo-crap 0.6.1.
+  #
+  # Thresholds are the repo's measured first-run values (see PR #2):
+  # coverage floor 24 (measured 27.27%, 150/550 lines, 9 tests green) with ~3pp
+  # margin for fleet variance; CRAP ceiling 120 (measured max 110 =
+  # RelationType::fmt, CC 10, edge.rs:22) with ~10% headroom. The bin entry
+  # points main (CRAP 156, CC 12, 0% coverage by design — clap wiring in
+  # openeruka/ and openeruka-server/) are excluded with '**/main.rs'.
+  coverage-crap:
+    name: Coverage + CRAP
+    runs-on: ubuntu-latest
+    # This repo is public, so GitHub-hosted runners are fine; private dirmacs
+    # repos get zero-step admission refusal on ubuntu-latest.
+    timeout-minutes: 40
+    env:
+      COVERAGE_FLOOR: "24"
+      CRAP_THRESHOLD: "120"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          # llvm-tools-preview backs the llvm engine (llvm-profdata/llvm-cov).
+          components: llvm-tools-preview
+      - uses: Swatinem/rust-cache@v2
+      - name: Install pinned coverage + CRAP tools
+        run: |
+          set -euo pipefail
+          TARPAULIN_VERSION=0.37.5
+          CRAP_VERSION=0.6.1
+          case "$(uname -m)" in
+            aarch64) arch=aarch64 ;;
+            x86_64)  arch=x86_64 ;;
+            *) echo "::error::unsupported architecture $(uname -m)"; exit 1 ;;
+          esac
+          mkdir -p "$HOME/.local/bin"
+          # $GITHUB_PATH only affects LATER steps, not this one -- the version
+          # assertions below run here, so the dir must be on PATH in this script.
+          export PATH="$HOME/.local/bin:$PATH"
+          curl -sSLf "https://github.com/xd009642/tarpaulin/releases/download/${TARPAULIN_VERSION}/cargo-tarpaulin-${arch}-unknown-linux-gnu.tar.gz" \
+            | tar xz -C "$HOME/.local/bin"
+          curl -sSLf "https://github.com/minikin/cargo-crap/releases/download/v${CRAP_VERSION}/cargo-crap-${arch}-unknown-linux-gnu.tar.gz" \
+            | tar xz -C "$HOME/.local/bin"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          cargo-tarpaulin --version | grep -qx "tarpaulin ${TARPAULIN_VERSION}"
+          cargo-crap --version | grep -qx "cargo-crap ${CRAP_VERSION}"
+      # No --locked: this repo does not commit a Cargo.lock (matches the Test
+      # job above, which also runs without it).
+      - name: Coverage gate (tarpaulin, llvm engine)
+        run: >-
+          cargo tarpaulin --engine Llvm --workspace
+          --out Lcov --fail-under "$COVERAGE_FLOOR" --timeout 300
+      - name: CRAP gate (fed by this run's coverage, bin entry points excluded)
+        # '**/main.rs' excludes the two clap entry points (openeruka and
+        # openeruka-server bin mains, CC 12, 0% coverage by design). In
+        # cargo-crap workspace mode this glob is the exclude spelling that
+        # matches; bare package-relative paths silently match nothing.
+        # cargo-crap logs one expected warning that the excluded LCOV files
+        # matched no analyzed source. Everything else is scored.
+        run: >-
+          cargo crap --lcov lcov.info --workspace --exclude '**/main.rs'
+          --threshold "$CRAP_THRESHOLD" --fail-above
+          --format json > crap.json
+      - name: Write the run summary
+        if: always()
+        run: |
+          set -uo pipefail
+          {
+            echo "### Coverage + CRAP gate"
+            echo
+            if [ -f lcov.info ]; then
+              awk -F: '/^LH:/{lh+=$2} /^LF:/{lf+=$2} END {if (lf>0) printf "Line coverage: %.2f%% (%d/%d lines)\n", 100*lh/lf, lh, lf; else print "Line coverage: no LCOV data"}' lcov.info
+            else
+              echo "Line coverage: no lcov.info (the coverage run did not complete)"
+            fi
+            if [ -f crap.json ]; then
+              # Shell-only parse: runner images carry no python3, and a
+              # crashing summary must not redden a gate that passed.
+              vals=$(tr -d ' \n' < crap.json | grep -o '"crap":[0-9.]*' | cut -d: -f2)
+              if [ -n "$vals" ]; then
+                n=$(printf '%s\n' "$vals" | grep -c .)
+                worst=$(printf '%s\n' "$vals" | sort -g | tail -1)
+                echo "Functions scored: $n; worst CRAP: $worst; threshold $CRAP_THRESHOLD"
+              else
+                echo "WARNING: crap.json present but no entries parsed"
+              fi
+            else
+              echo "CRAP: no crap.json (the CRAP step did not complete)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
